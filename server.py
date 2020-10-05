@@ -48,9 +48,16 @@ def save_lexicon(lexicon):
     lex_id = generate_id()
     filename = os.path.join(LEXICON_FOLDER, lex_id)
     with open(filename, "w") as f:
-        for line in lexicon:
-            f.write(line)
+        for entry in lexicon:
+            f.write(str(entry) + "\n")
     return lex_id
+
+
+def load_lexicon(lex_id):
+    with open(get_lexicon_path(lex_id), "r") as f:
+        for line in f:
+            word, pron = line.strip().split(" ", maxsplit=1)
+            yield g2p.PronEntry(word, pron)
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -63,12 +70,15 @@ def index():
         lex_id = save_lexicon(lexicon)
         print("Save lexicon")
         return redirect(url_for("show_lexicon", lex_id=lex_id))
-    model_names = sorted(models.keys())
-    return render_template("index.html", models=model_names)
+    else:
+        model_names = sorted(models.keys())
+        return render_template("index.html", models=model_names)
 
 
-@app.route("/lexicon/<lex_id>")
+@app.route("/lexicon/<lex_id>", methods=["GET", "POST"])
 def show_lexicon(lex_id):
-    with open(get_lexicon_path(lex_id), "r") as f:
-        lexicon = f.readlines()
-    return render_template("lexicon.html", lexicon=lexicon)
+    if request.method == "POST":
+        pass
+    else:
+        lexicon = load_lexicon(lex_id)
+        return render_template("lexicon.html", lexicon=lexicon)

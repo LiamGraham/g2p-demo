@@ -1,16 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <title>G2P | Lexicon</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <title>G2P | Lexicon</title>
 </head>
+
 <body>
-    <div class="lex-wrapper">
-        {% for line in lexicon %}
-            <span class="pron">{{ line }}</span>
-        {% endfor %}
+
+  <h1>Lexicon</h1>
+
+  <table class="pron-table">
+    <tr>
+      <th>Word</th>
+      <th>Pronunciation</th>
+    </tr>
+    {% for entry in lexicon %}
+    <tr>
+      <td>
+        {{ entry.word }}
+      </td>
+      <td>
+        {{ entry.pron }}
+      </td>
+    </tr>
+    {% endfor %}
     </div>
 </body>
+
 </html>

@@ -10,37 +10,42 @@
 
 <body>
   <h1>Automatic G2P Conversion</h1>
+  
+  <div class="main-wrapper">
 
-  <div class="form-wrapper">
-    <form method="post" enctype="multipart/form-data">
-      <div class="form-item">
-        <label for="word-list">
-          Word List:
-        </label>
-        <input id="word-list" name="word-list" type="file">
-      </div>
-      
-      <div class="form-item">
-        <label for="inventory">
-          Phonemic Inventory:
-        </label>
-        <input id="inventory" name="inventory" type="file">
-      </div>
 
-      <div class="form-item">
-        <label for="model-select">
-          Model:
-        </label>
-        <select id="model" name="model">
-          {% for model in models %}
-            <option value="{{ model }}">
-              {{ model }}
-            </option>
-          {% endfor %}
-        </select>
-      </div>
-      <input type="submit" value="Convert">
-    </form>
+    <div class="form-wrapper">
+      <h2>Upload Files</h2>
+      <form method="post" enctype="multipart/form-data">
+        <div class="form-item">
+          <label for="word-list">
+            Word List
+          </label>
+          <input id="word-list" name="word-list" type="file">
+        </div>
+        
+        <div class="form-item">
+          <label for="inventory">
+            Phonemic Inventory
+          </label>
+          <input id="inventory" name="inventory" type="file">
+        </div>
+
+        <div class="form-item">
+          <label for="model-select">
+            Model
+          </label>
+          <select id="model" name="model">
+            {% for model in models %}
+              <option value="{{ model }}">
+                {{ model }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <input type="submit" value="Submit">
+      </form>
+    </div>
   </div>
 </body>
 
