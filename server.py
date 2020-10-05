@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, send_from_directory
 from werkzeug.utils import secure_filename
 import glob
 import os
@@ -35,7 +35,7 @@ def generate_id():
 
 
 def get_lexicon_path(lex_id):
-    return os.path.join(LEXICON_FOLDER, lex_id)
+    return os.path.join(LEXICON_FOLDER, lex_id) + ".lex"
 
 
 def save_file(storage):
@@ -46,7 +46,7 @@ def save_file(storage):
 
 def save_lexicon(lexicon):
     lex_id = generate_id()
-    filename = os.path.join(LEXICON_FOLDER, lex_id)
+    filename = get_lexicon_path(lex_id)
     with open(filename, "w") as f:
         for entry in lexicon:
             f.write(str(entry) + "\n")
@@ -75,10 +75,15 @@ def index():
         return render_template("index.html", models=model_names)
 
 
-@app.route("/lexicon/<lex_id>", methods=["GET", "POST"])
+@app.route("/lexicon/<lex_id>")
 def show_lexicon(lex_id):
-    if request.method == "POST":
-        pass
-    else:
-        lexicon = load_lexicon(lex_id)
-        return render_template("lexicon.html", lexicon=lexicon)
+    lexicon = load_lexicon(lex_id)
+    return render_template("lexicon.html", 
+        lexicon=lexicon, 
+        download=url_for("send_lexicon", lex_id=lex_id)
+    )
+
+@app.route("/lexicon/<lex_id>/download")
+def send_lexicon(lex_id):
+    filename = lex_id + ".lex"
+    return send_from_directory(LEXICON_FOLDER, filename, as_attachment=True)

@@ -10,24 +10,34 @@
 
 <body>
 
-  <h1>Lexicon</h1>
+  <header>
+    <h1>Lexicon</h1>
+  </header>
 
-  <table class="pron-table">
-    <tr>
-      <th>Word</th>
-      <th>Pronunciation</th>
-    </tr>
-    {% for entry in lexicon %}
-    <tr>
-      <td>
-        {{ entry.word }}
-      </td>
-      <td>
-        {{ entry.pron }}
-      </td>
-    </tr>
-    {% endfor %}
+  <div class="main-wrapper">
+
+    <div class="link-wrapper">
+      <a href="{{ url_for('index') }}">Restart</a>
+      <a class="download-button" href="{{ download }}">Download</a>
     </div>
+
+    <table class="pron-table">
+      <tr>
+        <th>Word</th>
+        <th>Pronunciation</th>
+      </tr>
+      {% for entry in lexicon %}
+      <tr>
+        <td>
+          {{ entry.word }}
+        </td>
+        <td>
+          {{ entry.pron }}
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
 </body>
 
 </html>
