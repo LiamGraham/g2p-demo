@@ -1,14 +1,17 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for
 from werkzeug.utils import secure_filename
 import glob
 import os
 from collections import namedtuple
 from uuid import uuid4
 
+from ..g2p import g2p
+
 app = Flask(__name__)
 
 MODEL_PATH = "/root/uni/anylang/high_resource/high_resource_openfst"
-UPLOAD_FOLDER = "/root/uni/demo/uploads"
+UPLOAD_FOLDER = "/root/uni/g2p/demo/uploads"
+LEXICON_FOLDER = "/root/uni/g2p/demo/lexicons"
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -27,22 +30,45 @@ def get_models(dir_path):
 models = get_models(MODEL_PATH)
 
 
+def generate_id():
+    return uuid4().hex[:10]
+
+
+def get_lexicon_path(lex_id):
+    return os.path.join(LEXICON_FOLDER, lex_id)
+
+
 def save_file(storage):
-    filename = os.path.join(app.config["UPLOAD_FOLDER"], secure_filename(uuid4().hex))
+    filename = os.path.join(app.config["UPLOAD_FOLDER"], generate_id())
     storage.save(filename)
     return filename
 
 
+def save_lexicon(lexicon):
+    lex_id = generate_id()
+    filename = os.path.join(LEXICON_FOLDER, lex_id)
+    with open(filename, "w") as f:
+        for line in lexicon:
+            f.write(line)
+    return lex_id
+
+
 @app.route("/", methods=["GET", "POST"])
 def index():
-    model_names = sorted(models.keys())
     if request.method == "POST":
         model = request.form["model"]
         inventory = save_file(request.files["inventory"])
         word_list = save_file(request.files["word-list"])
-        #convert(word_list, inventory, model_names[model])
+        lexicon = g2p.convert(word_list, inventory, models[model])
+        lex_id = save_lexicon(lexicon)
+        print("Save lexicon")
+        return redirect(url_for("show_lexicon", lex_id=lex_id))
+    model_names = sorted(models.keys())
     return render_template("index.html", models=model_names)
 
-@app.route("/lexicon/{<int:lex_id>}")
-def get_lexicon(lex_id):
-    return str(lex_id)
+
+@app.route("/lexicon/<lex_id>")
+def show_lexicon(lex_id):
+    with open(get_lexicon_path(lex_id), "r") as f:
+        lexicon = f.readlines()
+    return render_template("lexicon.html", lexicon=lexicon)

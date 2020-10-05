@@ -14,3 +14,8 @@ label {
 .form-item {
     margin: 0.5em 0;
 }
+
+.lex-wrapper {
+    display: flex;
+    flex-flow: column;
+}
