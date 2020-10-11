@@ -53,6 +53,15 @@ def save_lexicon(lexicon):
     return lex_id
 
 
+def update_lexicon(lex_id, prons):
+    lexicon = list(load_lexicon(lex_id))
+    print("Update lexicon")
+    with open(get_lexicon_path(lex_id), "w") as f:
+        for entry in lexicon:
+            entry.pron = next(prons)
+            f.write(str(entry) + "\n")
+
+
 def load_lexicon(lex_id):
     with open(get_lexicon_path(lex_id), "r") as f:
         for line in f:
@@ -75,13 +84,16 @@ def index():
         return render_template("index.html", models=model_names)
 
 
-@app.route("/lexicon/<lex_id>")
+@app.route("/lexicon/<lex_id>", methods=["GET", "POST"])
 def show_lexicon(lex_id):
-    lexicon = load_lexicon(lex_id)
-    return render_template("lexicon.html", 
-        lexicon=lexicon, 
-        download=url_for("send_lexicon", lex_id=lex_id)
-    )
+    if request.method == "POST":
+        update_lexicon(lex_id, request.form.values())
+        return redirect(url_for("send_lexicon", lex_id=lex_id))
+    else:
+        lexicon = load_lexicon(lex_id)
+        return render_template("lexicon.html", 
+            lexicon=lexicon, 
+        )
 
 @app.route("/lexicon/<lex_id>/download")
 def send_lexicon(lex_id):

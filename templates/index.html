@@ -14,7 +14,7 @@
   </header>
   
   <div class="main-wrapper">
-      <form method="post" enctype="multipart/form-data">
+      <form id="convert-form" method="post" enctype="multipart/form-data">
         <div class="form-item">
           <label for="word-list">
             Word List
@@ -41,7 +41,7 @@
             {% endfor %}
           </select>
         </div>
-        <input type="submit" value="Submit">
+        <input type="submit" value="Submit" class="button">
       </form>
   </div>
 </body>

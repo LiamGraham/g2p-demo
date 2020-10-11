@@ -17,25 +17,26 @@
   <div class="main-wrapper">
 
     <div class="link-wrapper">
-      <a href="{{ url_for('index') }}">Restart</a>
-      <a class="download-button" href="{{ download }}">Download</a>
+      <a class="button" href="{{ url_for('index') }}">Restart</a>
+      <input type="submit" value="Download" form="lex-form" class="button">
     </div>
-
-    <table class="pron-table">
-      <tr>
-        <th>Word</th>
-        <th>Pronunciation</th>
-      </tr>
-      {% for entry in lexicon %}
-      <tr>
-        <td>
-          {{ entry.word }}
-        </td>
-        <td>
-          {{ entry.pron }}
-        </td>
-      </tr>
-      {% endfor %}
+    <form method="post" id="lex-form">
+      <table class="pron-table">
+        <tr>
+          <th>Word</th>
+          <th>Pronunciation</th>
+        </tr>
+        {% for entry in lexicon %}
+        <tr>
+          <td>
+            {{ entry.word }}
+          </td>
+          <td>
+            <input name="pron{{ loop.index0 }}" type="text" value="{{ entry.pron }}">
+          </td>
+        </tr>
+        {% endfor %}
+      </form>
     </table>
   </div>
 </body>
