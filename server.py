@@ -75,7 +75,8 @@ def index():
         model = request.form["model"]
         inventory = save_file(request.files["inventory"])
         word_list = save_file(request.files["word-list"])
-        lexicon = g2p.convert(word_list, inventory, models[model])
+        converter = g2p.Converter(word_list, inventory, models[model])
+        lexicon = converter.convert()
         lex_id = save_lexicon(lexicon)
         print("Save lexicon")
         return redirect(url_for("show_lexicon", lex_id=lex_id))

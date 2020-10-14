@@ -120,3 +120,7 @@ label {
 .button:focus {
     opacity: 0.9;
 }
+
+#download {
+  background-color: #4E51A3;
+}

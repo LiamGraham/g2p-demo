@@ -5,20 +5,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  <title>G2P | Lexicon</title>
+  <title>G2P | Edit Lexicon</title>
 </head>
 
 <body>
 
   <header>
-    <h1>Lexicon</h1>
+    <h1>Edit Lexicon</h1>
   </header>
 
   <div class="main-wrapper">
 
     <div class="link-wrapper">
       <a class="button" href="{{ url_for('index') }}">Restart</a>
-      <input type="submit" value="Download" form="lex-form" class="button">
+      <input type="submit" value="Download" form="lex-form" class="button" id="download">
     </div>
     <form method="post" id="lex-form">
       <table class="pron-table">
