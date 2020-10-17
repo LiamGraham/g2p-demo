@@ -4,6 +4,7 @@ import glob
 import os
 from collections import namedtuple
 from uuid import uuid4
+from typing import List
 
 from ..g2p import g2p
 
@@ -18,7 +19,9 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 
-def get_models(dir_path):
+def get_models(dir_path) -> List[str]:
+    """Returns the list of paths of models in the given directory.
+    """
     models = {}
     paths = glob.glob(os.path.join(dir_path, "*"))
     for path in paths:
@@ -30,7 +33,10 @@ def get_models(dir_path):
 models = get_models(MODEL_PATH)
 
 
-def generate_id():
+def generate_id() -> str:
+    """
+    Returns a new unique ID.
+    """
     return uuid4().hex[:10]
 
 
@@ -38,36 +44,64 @@ def get_lexicon_path(lex_id):
     return os.path.join(LEXICON_FOLDER, lex_id) + ".lex"
 
 
-def save_file(storage):
+def save_file(storage) -> str:
+    """
+    Saves the given file storage object as a file in the upload folder and returns the file path. 
+    """
     filename = os.path.join(app.config["UPLOAD_FOLDER"], generate_id())
     storage.save(filename)
     return filename
 
 
-def save_lexicon(lexicon):
+def save_lexicon(lexicon) -> str:
+    """
+    Saves the given Lexicon to a file and returns the generated lexicon ID.
+    """
     lex_id = generate_id()
     filename = get_lexicon_path(lex_id)
-    with open(filename, "w") as f:
-        for entry in lexicon:
-            f.write(str(entry) + "\n")
+    lexicon.save(filename)
+    return lex_id
+
+
+def save_lexicon_file(storage):
+    """
+    Saves the given uploaded lexicon file and returns the generated lexicon ID.
+    """
+    lex_id = generate_id()
+    filename = get_lexicon_path(lex_id)
+    storage.save(filename)
     return lex_id
 
 
 def update_lexicon(lex_id, prons):
-    lexicon = list(load_lexicon(lex_id))
-    print("Update lexicon")
-    with open(get_lexicon_path(lex_id), "w") as f:
-        for entry in lexicon:
-            entry.pron = next(prons)
-            f.write(str(entry) + "\n")
+    """
+    Updates the lexicon with the given lexicon ID using the given pronunciations.
+    """
+    lexicon = load_lexicon(lex_id)
+    lexicon.update(prons)
+    lexicon.save()
 
 
 def load_lexicon(lex_id):
-    with open(get_lexicon_path(lex_id), "r") as f:
-        for line in f:
-            word, pron = line.strip().split(" ", maxsplit=1)
-            yield g2p.PronEntry(word, pron)
+    return g2p.Lexicon(get_lexicon_path(lex_id))
 
+
+def prepare_data(lex_id, ref_id):
+    lexicon = load_lexicon(lex_id)
+    reference = load_lexicon(ref_id)
+    
+    ref_prons = []
+    distances = []
+    for entry in lexicon:
+        actual = reference.entries.get(entry.word)
+        if actual:
+            ref_prons.append(actual.pron)
+            distance = round(entry.compare(actual), 3)
+            distances.append(distance)
+        else:
+            ref_prons.append(g2p.NULL_PRON)
+            distances.append(1.0)
+    return zip(lexicon, ref_prons, distances)
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -75,11 +109,14 @@ def index():
         model = request.form["model"]
         inventory = save_file(request.files["inventory"])
         word_list = save_file(request.files["word-list"])
+        
         converter = g2p.Converter(word_list, inventory, models[model])
         lexicon = converter.convert()
-        lex_id = save_lexicon(lexicon)
+        
         print("Save lexicon")
-        return redirect(url_for("show_lexicon", lex_id=lex_id))
+        lex_id = save_lexicon(lexicon)
+        ref_id = save_lexicon_file(request.files["reference"])
+        return redirect(url_for("show_lexicon", lex_id=lex_id, ref_id=ref_id))
     else:
         model_names = sorted(models.keys())
         return render_template("index.html", models=model_names)
@@ -88,12 +125,17 @@ def index():
 @app.route("/lexicon/<lex_id>", methods=["GET", "POST"])
 def show_lexicon(lex_id):
     if request.method == "POST":
-        update_lexicon(lex_id, request.form.values())
+        prons = list(request.form.values())
+        update_lexicon(lex_id, prons)
         return redirect(url_for("send_lexicon", lex_id=lex_id))
     else:
-        lexicon = load_lexicon(lex_id)
+        ref_id = request.args.get("ref_id")
+        if not ref_id:
+            return "Error: Reference ID not specified"
+
+        data = prepare_data(lex_id, ref_id)
         return render_template("lexicon.html", 
-            lexicon=lexicon, 
+            data=data
         )
 
 @app.route("/lexicon/<lex_id>/download")
